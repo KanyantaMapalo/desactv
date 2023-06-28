@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "187293062910",
+    "project_id": "desac-tv-3",
+    "storage_bucket": "desac-tv-3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187293062910:android:82c8f7044cf43956a737af",
+        "android_client_info": {
+          "package_name": "com.desac.tv.desactvapp3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuMu7xFyaTZrFyaSEIoy50hLFsxGgLQqU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
