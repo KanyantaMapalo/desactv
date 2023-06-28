@@ -13,6 +13,7 @@ import 'package:desactvapp3/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controller/controller_binding.dart';
 import 'controller/login.dart';
@@ -49,64 +50,77 @@ class VideoApp extends StatefulWidget {
 }
 
 class _VideoAppState extends State<VideoApp> {
-
-  GetStorage storage = GetStorage();
-
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
   String string = '';
+
+  void checkUserId(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('user_id');
+
+    if (userId != null && userId.isNotEmpty) {
+      // User ID exists in SharedPreferences, navigate to HomeScreen
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    } else {
+      // User ID does not exist or is empty, handle the logic accordingly
+      // For example, you can navigate to a login or registration screen
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => LandingPage()));
+    }
+  }
+
   void initState() {
     super.initState();
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;
       print('source $_source');
-      // 1.
-      switch (_source.keys.toList()[0]) {
-        case ConnectivityResult.mobile:
-          string =
-          _source.values.toList()[0] ? 'Mobile: Online' : 'Mobile: Offline';
-          break;
-        case ConnectivityResult.wifi:
-          string =
-          _source.values.toList()[0] ? 'WiFi: Online' : 'WiFi: Offline';
-          break;
-        case ConnectivityResult.none:
-        default:
-          string = 'Offline';
-      }
-      // 2.
-      setState(() {});
-      // 3.
-
+      setState(() {
+        switch (_source.keys.toList()[0]) {
+          case ConnectivityResult.mobile:
+            string = _source.values.toList()[0] ? 'Mobile: Online' : 'Mobile: Offline';
+            break;
+          case ConnectivityResult.wifi:
+            string = _source.values.toList()[0] ? 'WiFi: Online' : 'WiFi: Offline';
+            break;
+          case ConnectivityResult.none:
+          default:
+            string = 'Offline';
+        }
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    string=='Mobile: Offline'?Get.snackbar('', "You are offline"):Get.snackbar('', "Your connection is restored");
+    String connectionStatus = '';
+    if (string.contains('Online')) {
+      checkUserId(context);
+    } else {
+      connectionStatus = 'Offline';
+    }
+
+    string == 'Mobile: Offline' || string == 'WiFi: Offline'
+        ? Get.snackbar('', "You are offline")
+        : Get.snackbar('', "Your connection is restored");
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown
+      DeviceOrientation.portraitDown,
     ]);
-
 
     Get.changeTheme(ThemeData.dark(useMaterial3: true));
 
     return GetMaterialApp(
       initialBinding: MyBindings(),
       debugShowCheckedModeBanner: false,
-        theme: ThemeData().copyWith(
-
-          primaryColor: Colors.teal,
-          // change the focus border color of the TextField
-          colorScheme: ThemeData().colorScheme.copyWith(primary: Colors.amber),
-
-        ),
+      theme: ThemeData().copyWith(
+        primaryColor: Colors.teal,
+        colorScheme: ThemeData().colorScheme.copyWith(primary: Colors.amber),
+      ),
       title: 'DESAC TV',
-      home: string=='Mobile: Online'?LandingPage():DownloadsScreen()
+      home: connectionStatus == 'Online' ? LandingPage() : DownloadsScreen(),
     );
   }
-
 }
-

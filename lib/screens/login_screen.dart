@@ -1,14 +1,12 @@
-import 'dart:convert';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:desactvapp3/screens/home.dart';
 import 'package:desactvapp3/screens/register_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:desactvapp3/services/db_ops.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-
-import '../controller/login.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -20,20 +18,66 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String _countryValue = "Country *";
   bool obscure = true;
+  String phone = "";
 
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
-
-  GetxController loginController = Get.put(LoginController());
 
   String responseProcess = "Please wait...";
   @override
   void initState() {
     DBOPS dbops = DBOPS();
-
-
     super.initState();
   }
+
+  Future<String?> getPhoneFromFirestore(String userId) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (userSnapshot.exists) {
+        Map<String, dynamic>? userData = userSnapshot.data();
+
+        if (userData != null && userData.containsKey('phone')) {
+          return phone = userData['phone'].toString();
+        }
+      }
+    } catch (e) {
+      print('Error retrieving phone value: $e');
+    }
+
+    return null;
+  }
+
+  Future<void> signIn(BuildContext context) async {
+    try {
+      // Sign in the user with email and password
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: username.text,
+        password: password.text,
+      );
+
+      // Get the user ID (UID)
+      String userId = userCredential.user!.uid;
+
+      // Save user ID (UID) to SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_id', userId);
+      GetStorage().write('userId', phone);
+      // Sign in successful, navigate to home page or display a success message
+      responseProcess = "Registration successful!";
+      // Registration successful, navigate to home page or display a success message
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } catch (e) {
+      // Sign in failed, display an error message
+      responseProcess = "Sign In failed!\nInfo $e";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -46,9 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Center(
+                const Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(30.0),
+                    padding: EdgeInsets.all(30.0),
                     child: CircleAvatar(
                       radius: 40,
                       backgroundImage: AssetImage("assets/de.png"),
@@ -57,20 +101,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                  Container(
                    height: Get.height-130,
-                   padding: EdgeInsets.symmetric(vertical:50),
+                   padding:const EdgeInsets.symmetric(vertical:50),
                    decoration: BoxDecoration(
                      color: Colors.blueGrey.shade800,
-                     borderRadius: BorderRadius.only(topLeft: Radius.circular(50),topRight: Radius.circular(50))
+                     borderRadius: const BorderRadius.only(topLeft: Radius.circular(50),topRight: Radius.circular(50))
                    ),
                    child: Column(
                      children: [
                        Container(
-                          margin: EdgeInsets.all(20),
+                          margin: const EdgeInsets.all(20),
                           child: Column(
                             children: [
                               TextField(
                                 controller: username,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors.white
                                 ),
                                 decoration: InputDecoration(
@@ -78,9 +122,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   labelStyle: TextStyle(
                                       color: Colors.blueGrey.shade50
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                                  label: Text("Username *"),
-                                  border: OutlineInputBorder(
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 5,horizontal: 20),
+                                  label: const Text("email address *"),
+                                  border: const OutlineInputBorder(
                                       borderSide: BorderSide(
                                         style: BorderStyle.solid,
                                         color: Colors.brown,
@@ -88,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 25,),
+                              const SizedBox(height: 25,),
                               TextField(
                                 controller: password,
                                 obscureText: obscure,
@@ -103,10 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   labelStyle: TextStyle(
                                       color: Colors.blueGrey.shade50
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(vertical: 3,horizontal: 20),
-                                  label: Text("Password *"),
+                                  contentPadding:const EdgeInsets.symmetric(vertical: 3,horizontal: 20),
+                                  label:const Text("Password *"),
                                   /* prefixIcon: Icon(Icons.password,size: 16,),*/
-                                  border: OutlineInputBorder(
+                                  border:const OutlineInputBorder(
                                       borderSide: BorderSide(
                                         style: BorderStyle.solid,
                                         color: Colors.brown,
@@ -118,20 +162,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                 Container(
-                        margin: EdgeInsets.only(top: 30),
+                        margin:const EdgeInsets.only(top: 30),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             ElevatedButton(onPressed: (){
-                              Get.to(()=>RegisterScreen());
-                            }, child: SizedBox(child: Center(child: Text("REGISTER", style: TextStyle(color: Colors.white),)),width: 90,),
-                                style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(Colors.green)
-                                )
+                              Get.to(()=> const RegisterScreen());
+                              },
+                              child: SizedBox(
+                                child: Center(
+                                    child: Text(
+                                      "REGISTER",
+                                      style: TextStyle(
+                                          color: Colors.white
+                                      ),
+                                    )
+                                ),
+                                width: 90,),
+                              style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(Colors.green)
+                              )
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
+                            const Padding(
+                              padding: EdgeInsets.all(10.0),
                               child: Text("or",style: TextStyle(color: Colors.blueGrey),
 
                               ),
@@ -148,14 +202,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                         child: Card(
                                           elevation: 20,
                                           child: Container(
-                                              padding: EdgeInsets.all(20),
+                                              padding: const EdgeInsets.all(20),
                                               height: 200,
                                               width: 300,
                                               child: Column(
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  CircularProgressIndicator(),
-                                                  SizedBox(height: 15,),
+                                                  const CircularProgressIndicator(),
+                                                  const SizedBox(height: 15,),
                                                   Text('$responseProcess'),
                                                 ],
                                               )
@@ -164,10 +218,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                       );
 
                                     });
-                                    responseProcess = await Get.find<LoginController>().login(username.text, password.text);
-                                    print(responseProcess);
+                                    signIn(context);
                                   }
-                                }, child: SizedBox(child: Center(child: Text("LOGIN", style: TextStyle(color: Colors.white))),width: 90,),
+                                },
+                             child: SizedBox(
+                               child: Center(
+                                   child: Text(
+                                       "LOGIN",
+                                       style: TextStyle(
+                                           color: Colors.white)
+                                   )
+                               ),
+                               width: 90,),
                               style: ButtonStyle(
                                 backgroundColor: MaterialStateProperty.all(Colors.green)
                               ),

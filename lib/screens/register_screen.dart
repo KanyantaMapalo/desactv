@@ -1,10 +1,13 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:desactvapp3/screens/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:desactvapp3/services/db_ops.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -36,6 +39,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     super.initState();
   }
+
+  Future<void> registerAccount(BuildContext context) async {
+    try {
+      // Create the user with email and password
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email.text,
+        password: password.text,
+      );
+
+      // Get the user ID (UID)
+      String userId = userCredential.user!.uid;
+
+      // Save user ID (UID) to SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_id', userId);
+      GetStorage().write('userId', phone);
+      // Save user data to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'firstname': firstname.text,
+        'lastname': lastname.text,
+        'email': email.text,
+        'phone': phone.text,
+        'country': country.text,
+        'username': username.text,
+        'referrer_code': referrercode.text,
+        'promo_code': promocode.text,
+      });
+
+      responseProcess = "Registration successful!";
+      // Registration successful, navigate to home page or display a success message
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } catch (e) {
+      // Registration failed, display an error message
+      responseProcess = "Registration failed!\nInfo $e";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -329,27 +372,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
 
                       });
-                      var res = await dbops.register(firstname.text, lastname.text, email.text, phone.text, _countryValue, username.text, password.text,referrercode.text,promocode.text);
-                        var resJsoned = json.decode(res);
-
-                        print("RESPONSEY: "+resJsoned["user"][0]["responseCode"].toString());
-
-                        if(resJsoned["user"][0]["responseCode"]==2){
-                          print("true");
-                          setState(() {
-                            responseProcess = resJsoned["user"][0]["responseMessage"];
-                          });
-                          Navigator.pop(context);
-
-                        }
-
-                        if(resJsoned["user"][0]["responseCode"]==1){
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-
-                            Get.to(()=>HomeScreen(),transition: Transition.circularReveal);
-                        }
-
+                      //create account
+                      registerAccount(context);
                     }
                   }, child: SizedBox(child: Center(child: Text("REGISTER")),width: 90,))
                 ],
