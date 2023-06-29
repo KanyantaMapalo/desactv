@@ -79,10 +79,10 @@ class _VideoAppState extends State<VideoApp> {
       setState(() {
         switch (_source.keys.toList()[0]) {
           case ConnectivityResult.mobile:
-            string = _source.values.toList()[0] ? 'Mobile: Online' : 'Mobile: Offline';
+            string = _source.values.toList()[0] ? 'Online' : 'Offline';
             break;
           case ConnectivityResult.wifi:
-            string = _source.values.toList()[0] ? 'WiFi: Online' : 'WiFi: Offline';
+            string = _source.values.toList()[0] ? 'Online' : 'Offline';
             break;
           case ConnectivityResult.none:
           default:
@@ -96,6 +96,7 @@ class _VideoAppState extends State<VideoApp> {
   Widget build(BuildContext context) {
     String connectionStatus = '';
     if (string.contains('Online')) {
+      connectionStatus = 'Online';
       checkUserId(context);
     } else {
       connectionStatus = 'Offline';

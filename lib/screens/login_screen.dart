@@ -51,31 +51,102 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> signIn(BuildContext context) async {
     try {
-      // Sign in the user with email and password
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: username.text,
-        password: password.text,
-      );
+      // Get the user document with the provided username
+      final usersCollection = FirebaseFirestore.instance.collection('users');
+      final querySnapshot = await usersCollection.where('username', isEqualTo: username.text).limit(1).get();
 
-      // Get the user ID (UID)
-      String userId = userCredential.user!.uid;
+      if (querySnapshot.docs.isNotEmpty) {
+        // Username exists, retrieve the user's email address
+        final userDoc = querySnapshot.docs.first;
+        final userEmail = userDoc['email'];
 
-      // Save user ID (UID) to SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_id', userId);
-      GetStorage().write('userId', phone);
-      // Sign in successful, navigate to home page or display a success message
-      responseProcess = "Registration successful!";
-      // Registration successful, navigate to home page or display a success message
-      // ignore: use_build_context_synchronously
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+        // Show a loading dialog
+        showLoadingDialog("Signing In...");
+
+        // Sign in the user with email and password
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: userEmail,
+          password: password.text,
+        );
+
+        // Get the user ID (UID)
+        String userId = userCredential.user!.uid;
+
+        // Save user ID (UID) to SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', userId);
+        GetStorage().write('userId', phone);
+
+        // Close the loading dialog
+        Navigator.pop(context);
+
+        // Show a success dialog
+        showResponseDialog("Sign In successful!");
+
+        // Sign in successful, navigate to home page or display a success message
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        // Username does not exist, display an error message
+        showResponseDialog("Username not found. Please check your username.");
+      }
     } catch (e) {
       // Sign in failed, display an error message
-      responseProcess = "Sign In failed!\nInfo $e";
+      showResponseDialog("Sign In failed!\nInfo: $e");
     }
+  }
+
+  void showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(
+          child: Card(
+            elevation: 20,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              height: 200,
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 15,),
+                  Text(message),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showResponseDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+          child: Card(
+            elevation: 20,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              height: 200,
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(message),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -123,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: Colors.blueGrey.shade50
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                                  label: const Text("email address *"),
+                                  label: const Text("username *"),
                                   border: const OutlineInputBorder(
                                       borderSide: BorderSide(
                                         style: BorderStyle.solid,
@@ -196,28 +267,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if(username.text==""||password.text==""){
                                     Get.snackbar("Error","",messageText: Text("Fill all the fields!",style:TextStyle(color: Colors.red,fontSize: 16)),icon: Icon(Icons.info_outline,color: Colors.red,));
                                   }else{
-                                    responseProcess = "Please wait";
-                                    showDialog(context: context, builder: (BuildContext context){
-                                      return  Center(
-                                        child: Card(
-                                          elevation: 20,
-                                          child: Container(
-                                              padding: const EdgeInsets.all(20),
-                                              height: 200,
-                                              width: 300,
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  const CircularProgressIndicator(),
-                                                  const SizedBox(height: 15,),
-                                                  Text('$responseProcess'),
-                                                ],
-                                              )
-                                          ),
-                                        ),
-                                      );
-
-                                    });
                                     signIn(context);
                                   }
                                 },

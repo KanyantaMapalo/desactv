@@ -40,44 +40,124 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.initState();
   }
 
+  Future<bool> checkUsernameAvailability(String username) async {
+    // Assuming you have a Firestore collection named 'users' that stores user information
+    final usersCollection = FirebaseFirestore.instance.collection('users');
+
+    // Query Firestore to check if the username already exists
+    final querySnapshot = await usersCollection.where('username', isEqualTo: username).get();
+
+    // Return true if the username exists (already taken), false otherwise
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+
   Future<void> registerAccount(BuildContext context) async {
     try {
-      // Create the user with email and password
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email.text,
-        password: password.text,
-      );
+      // Check if the username is already taken
+      bool isUsernameTaken = await checkUsernameAvailability(username.text);
 
-      // Get the user ID (UID)
-      String userId = userCredential.user!.uid;
+      if (isUsernameTaken) {
+        // Username is already taken, display an error message
+        showResponseDialog("Username is already taken. Please choose a different username.");
+      } else {
+        // Show a loading dialog
+        showLoadingDialog("Please wait");
 
-      // Save user ID (UID) to SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_id', userId);
-      GetStorage().write('userId', phone);
-      // Save user data to Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({
-        'firstname': firstname.text,
-        'lastname': lastname.text,
-        'email': email.text,
-        'phone': phone.text,
-        'country': country.text,
-        'username': username.text,
-        'referrer_code': referrercode.text,
-        'promo_code': promocode.text,
-      });
+        // Create the user with email and password
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email.text,
+          password: password.text,
+        );
 
-      responseProcess = "Registration successful!";
-      // Registration successful, navigate to home page or display a success message
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+        // Get the user ID (UID)
+        String userId = userCredential.user!.uid;
+
+        // Save user ID (UID) to SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', userId);
+
+        // Save user data to Firestore
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'firstname': firstname.text,
+          'lastname': lastname.text,
+          'email': email.text,
+          'phone': phone.text,
+          'country': _countryValue,
+          'username': username.text,
+          'referrer_code': referrercode.text,
+          'promo_code': promocode.text,
+        });
+
+        // Close the loading dialog
+        Navigator.pop(context);
+
+        // Show a success dialog
+        showResponseDialog("Registration successful!");
+
+        // Registration successful, navigate to home page or display a success message
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
     } catch (e) {
       // Registration failed, display an error message
-      responseProcess = "Registration failed!\nInfo $e";
+      showResponseDialog("Registration failed!\nInfo: $e");
     }
   }
+
+  void showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(
+          child: Card(
+            elevation: 20,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              height: 200,
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 15,),
+                  Text(message),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showResponseDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+          child: Card(
+            elevation: 20,
+            child: Container(
+              padding: EdgeInsets.all(20),
+              height: 200,
+              width: 300,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(message),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -103,35 +183,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: Colors.white70,
                 elevation: 20,
                 child: Container(
-                  margin: EdgeInsets.all(20),
+                  margin: const EdgeInsets.all(20),
                   child: Column(
                     children: [
                       TextField(
                         controller: firstname,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("First Name *"),
+                          label: Text(
+                              "First Name *",
+                            style: TextStyle(
+                              color: Colors.black
+                            ),
+                          ),
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
                               style: BorderStyle.solid,
                               color: Colors.brown,
                             )
                           ),
-
+                        ),
+                        style: const TextStyle(
+                          color: Colors.black
                         ),
                       ),
-                      SizedBox(height: 25,),
+                      const SizedBox(height: 25,),
                       TextField(
                         controller: lastname,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("Last Name *"),
+                          label: Text(
+                              "Last Name *",
+                            style: TextStyle(
+                                color: Colors.black
+                            ),
+                          ),
                           border: OutlineInputBorder(
                               borderSide: BorderSide(
                                 style: BorderStyle.solid,
@@ -139,16 +231,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               )
                           ),
                         ),
+                        style: const TextStyle(
+                            color: Colors.black
+                        ),
                       ),
-                      SizedBox(height: 25,),
+                      const SizedBox(height: 25,),
                       TextField(
                         controller: email,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("Email *"),
+                          label: Text(
+                              "Email *",
+                            style: TextStyle(
+                                color: Colors.black
+                            ),
+                          ),
                           prefixIcon: Icon(Icons.alternate_email,size: 16,),
                           border: OutlineInputBorder(
                               borderSide: BorderSide(
@@ -157,15 +257,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               )
                           ),
                         ),
+                        style: const TextStyle(
+                            color: Colors.black
+                        ),
                       ),
-                      SizedBox(height: 25,),
+                      const SizedBox(height: 25,),
                       TextField(
                         keyboardType: TextInputType.number,
                         controller: phone,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black87
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                             color: Colors.black
                           ),
@@ -181,11 +284,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
       Container(
-        margin: EdgeInsets.only(top:25),
-        padding: EdgeInsets.only(left: 20),
+        margin: const EdgeInsets.only(top:25),
+        padding: const EdgeInsets.only(left: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
-          border: Border(
+          border: const Border(
               top: BorderSide(style: BorderStyle.solid,width: .5,color: Colors.white),
               right: BorderSide(style: BorderStyle.solid,width: .5,color: Colors.white),
               bottom: BorderSide(style: BorderStyle.solid,width: .5,color: Colors.white),
@@ -194,16 +297,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: DropdownButton(
           dropdownColor: Colors.white,
-          icon: Icon(Icons.location_on),
+          icon: const Icon(Icons.location_on),
           hint: _countryValue == null
-              ? Text('Dropdown')
+              ? const Text('Dropdown')
               : Text(
             _countryValue,
-            style: TextStyle(color: Colors.black87,fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.black87,fontWeight: FontWeight.bold),
           ),
           isExpanded: true,
           iconSize: 30.0,
-          style: TextStyle(color: Colors.black87),
+          style: const TextStyle(color: Colors.black87),
           items: ['Angola', 'Congo', 'Zambia', 'Zimbabwe'].map((val) {
               return DropdownMenuItem<String>(
                 value: val,
@@ -212,7 +315,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       children: [
                         /*Image.asset("assets/zm.png"),*/
-                        Container(child: Text(val),padding: EdgeInsets.only(left: 10),),
+                        Container(child: Text(val),padding: const EdgeInsets.only(left: 10),),
                       ],
                     ),
                   ],
@@ -230,18 +333,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           },
         ),
       ),
-                      SizedBox(height: 25,),
+                      const SizedBox(height: 25,),
                       TextField(
                         controller: username,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.black87
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("Username *"),
+                          label: Text(
+                              "Username *",
+                            style: TextStyle(
+                                color: Colors.black
+                            ),
+                          ),
                           border: OutlineInputBorder(
                               borderSide: BorderSide(
                                 style: BorderStyle.solid,
@@ -250,11 +358,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 25,),
+                      const SizedBox(height: 25,),
                       TextField(
                         controller: password,
                         obscureText: obscure,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.black87
                         ),
                         decoration: InputDecoration(
@@ -262,13 +370,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           suffixIcon: IconButton(onPressed: (){setState(() {
                             obscure?obscure=false:obscure=true;
                           });},icon: Icon(obscure?Icons.remove_red_eye:Icons.visibility_off),),
-                          labelStyle: TextStyle(
+                          labelStyle: const TextStyle(
                               color: Colors.black
                           ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 3,horizontal: 20),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 3,horizontal: 20),
                           label: Text("Password *"),
                          /* prefixIcon: Icon(Icons.password,size: 16,),*/
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                               borderSide: BorderSide(
                                 style: BorderStyle.solid,
                                 color: Colors.brown,
@@ -280,7 +388,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Card(
@@ -292,15 +400,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       TextField(
                         controller: referrercode,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.black87
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("Referrer Code"),
+                          label: Text(
+                              "Referrer Code",
+                            style: TextStyle(
+                                color: Colors.black
+                            ),
+                          ),
                           border: OutlineInputBorder(
                               borderSide: BorderSide(
                                 style: BorderStyle.solid,
@@ -309,18 +422,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 15,),
+                      const SizedBox(height: 15,),
                       TextField(
                         controller: promocode,
-                        style: TextStyle(
+                        style: const TextStyle(
                             color: Colors.black87
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelStyle: TextStyle(
                               color: Colors.black
                           ),
                           contentPadding: EdgeInsets.symmetric(vertical: 5,horizontal: 20),
-                          label: Text("Your Promo Code"),
+                          label: Text(
+                              "Your Promo Code",
+                            style: TextStyle(
+                                color: Colors.black
+                            ),
+                          ),
                           border: OutlineInputBorder(
                               borderSide: BorderSide(
                                 style: BorderStyle.solid,
@@ -334,14 +452,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               Container(
-                margin: EdgeInsets.only(top: 6),
+                margin: const EdgeInsets.only(top: 6),
                 child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   ElevatedButton(onPressed: (){}, child: SizedBox(child: Center(child: Text("LOGIN")),width: 90,)),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
+                   ElevatedButton(onPressed: (){}, child: const SizedBox(child: Center(child: Text("LOGIN")),width: 90,)),
+                  const Padding(
+                    padding: EdgeInsets.all(10.0),
                     child: Text("or"),
                   ),
                   ElevatedButton(onPressed: () async{
@@ -349,29 +467,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if(firstname.text==""||lastname.text==""||email.text==""||_countryValue==""||username.text==""||password.text==""){
                       Get.snackbar("Error","",messageText: Text("Fill all the fields!",style:TextStyle(color: Colors.red,fontSize: 16)),icon: Icon(Icons.info_outline,color: Colors.red,));
                     }else{
-                      responseProcess = "Please wait";
-                      showDialog(context: context, builder: (BuildContext context){
-                        return  Center(
-                          child: Card(
-                                    elevation: 20,
-                                    child: Container(
-                                        padding: EdgeInsets.all(20),
-                                        height: 200,
-                                        width: 300,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .center,
-                                          children: [
-                                            CircularProgressIndicator(),
-                                            SizedBox(height: 15,),
-                                          Text('$responseProcess'),
-                                          ],
-                                        )
-                                    ),
-                                  ),
-                        );
-
-                      });
                       //create account
                       registerAccount(context);
                     }
