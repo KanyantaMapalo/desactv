@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:desactvapp3/controller/login.dart';
 import 'package:desactvapp3/models/movie_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -18,9 +17,9 @@ class DBOPS extends GetxController{
 
     var responseJSONed = json.decode(response.body);
     print(responseJSONed["user"][0]["responseMessage"]);
-    if(responseJSONed["user"][0]["responseCode"]=="1"){
-      Get.find<LoginController>().login(username, password);
-    }
+    // if(responseJSONed["user"][0]["responseCode"]=="1"){
+    //   Get.find<LoginController>().login(username, password);
+    // }
     Get.snackbar("","",messageText:Center(child: Text(responseJSONed["user"][0]["responseMessage"])),backgroundColor: Colors.black87);
     return response.body;
   }

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:desactvapp3/services/tingg_payments.dart';
-import '../controller/login.dart';
 import '../models/subscription_model.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -449,7 +448,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 
     if(phoneController.text!=""){
-      String response = await tingg.initCharge(widget.sub.price, Get.find<LoginController>().userdets.value.first.firstname, Get.find<LoginController>().userdets.value.first.lastname, Get.find<LoginController>().userdets.value.first.email,phoneController.text,Get.find<LoginController>().userdets.value.first.userID,duration);
+      String response = await tingg.initCharge(widget.sub.price, GetStorage().read('firstname'), GetStorage().read('lastname'), GetStorage().read('email'),phoneController.text,GetStorage().read('userId'),duration);
       var jsoned = json.decode(response);
 
      // print("CONVERVTED TINNGER: "+jsoned["results"]["paymentInstructions"].toString());

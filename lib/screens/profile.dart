@@ -1,8 +1,8 @@
-import 'package:desactvapp3/controller/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get_storage/get_storage.dart';
 
 
 class ProfileScreen extends StatelessWidget {
@@ -38,25 +38,25 @@ class ProfileScreen extends StatelessWidget {
                             TableRow(
                               children: [
                                 Text("First Name:",style:TextStyle(fontWeight: FontWeight.bold)),
-                                Text(Get.find<LoginController>().userdets.value.first.firstname)
+                                Text(GetStorage().read('firstname'))
                               ]
                             ),
                             TableRow(
                               children: [
                                 Text("Last Name:",style:TextStyle(fontWeight: FontWeight.bold)),
-                                Text(Get.find<LoginController>().userdets.value.first.lastname)
+                                Text(GetStorage().read('lastname'))
                               ]
                             ),
                             TableRow(
                               children: [
                                 Text("Email:",style:TextStyle(fontWeight: FontWeight.bold)),
-                                Text(Get.find<LoginController>().userdets.value.first.email)
+                                Text(GetStorage().read('email'))
                               ]
                             ),
                             TableRow(
                               children: [
                                 Text("Phone Number:",style:TextStyle(fontWeight: FontWeight.bold)),
-                                Text(Get.find<LoginController>().userdets.value.first.phone)
+                                Text(GetStorage().read('phone'))
                               ]
                             )
                           ],

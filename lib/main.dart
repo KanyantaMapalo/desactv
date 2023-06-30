@@ -15,9 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'controller/controller_binding.dart';
-import 'controller/login.dart';
-
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,7 +111,6 @@ class _VideoAppState extends State<VideoApp> {
     Get.changeTheme(ThemeData.dark(useMaterial3: true));
 
     return GetMaterialApp(
-      initialBinding: MyBindings(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData().copyWith(
         primaryColor: Colors.teal,

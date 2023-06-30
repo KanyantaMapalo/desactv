@@ -2,7 +2,7 @@ import 'package:desactvapp3/screens/subscription_plans_screen.dart';
 import 'package:desactvapp3/screens/watch_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/user_subscription_controller.dart';
+import 'package:get_storage/get_storage.dart';
 import '../models/movie_model.dart';
 
 
@@ -101,7 +101,7 @@ class Preview extends StatelessWidget {
                     color: Colors.blueGrey,
                     borderRadius: BorderRadius.circular(2)
                   ),margin: EdgeInsets.symmetric(vertical: 30),),
-                  Get.find<UserSubController>().usersubdetails.value.first.status=="active"?ElevatedButton(onPressed: (){
+                  GetStorage().read('userId')=="active"?ElevatedButton(onPressed: (){
                     Get.to(()=>Video(movie));
                   }, child: Padding(
                     padding: const EdgeInsets.all(13.0),

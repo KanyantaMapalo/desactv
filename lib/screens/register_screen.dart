@@ -76,6 +76,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Save user ID (UID) to SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_id', userId);
+        GetStorage().write('userId', userId);
+        GetStorage().write('firstname', firstname.text);
+        GetStorage().write('lastname', lastname.text);
+        GetStorage().write('phone', phone.text);
+        GetStorage().write('email', email.text);
+        GetStorage().write('country', _countryValue);
 
         // Save user data to Firestore
         await FirebaseFirestore.instance.collection('users').doc(userId).set({

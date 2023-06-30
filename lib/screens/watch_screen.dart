@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:widget_loading/widget_loading.dart';
-import '../controller/login.dart';
 import '../services/db_ops.dart';
 import '../services/notification_service.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -82,7 +81,7 @@ class _VideoState extends State<Video> {
         setState(() async{
 
           _controller.play();
-          dbops.view(Get.find<LoginController>().userdets.value.first.userID, widget.movieItem.id);
+          dbops.view(GetStorage().read('userId'), widget.movieItem.id);
           updatePlaying();
 
           await notificationService.showLocalNotification(
@@ -132,7 +131,7 @@ class _VideoState extends State<Video> {
         });
         updatePlaying();
       });
-    dbops.view(Get.find<LoginController>().userdets.value.first.userID, widget.movieItem.id);
+    dbops.view(GetStorage().read('userId'), widget.movieItem.id);
 
   }
   void playNext(){
@@ -531,7 +530,7 @@ class _VideoState extends State<Video> {
                                                                                       setState((){
                                                                                         _loading = true;
                                                                                       });
-                                                                                      var result = await TinggDown().authentication("10", Get.find<LoginController>().userdets.value.first.firstname, Get.find<LoginController>().userdets.value.first.lastname, Get.find<LoginController>().userdets.value.first.email,txtPhone.text,Get.find<LoginController>().userdets.value.first.userID,"download",GetStorage().read("payermodeid"));
+                                                                                      var result = await TinggDown().authentication("10", GetStorage().read('firstname'), GetStorage().read('lastname'), GetStorage().read('email'),txtPhone.text,GetStorage().read('userId'),"download",GetStorage().read("payermodeid"));
 
                                                                                       Timer.periodic(Duration(seconds: 5), (Timer time) async{
 

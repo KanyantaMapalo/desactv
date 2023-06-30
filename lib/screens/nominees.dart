@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:desactvapp3/controller/user_subscription_controller.dart';
 import 'package:desactvapp3/models/movie_model.dart';
 import 'package:desactvapp3/screens/set_questions.dart';
 import 'package:desactvapp3/screens/watch_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/login.dart';
+import 'package:get_storage/get_storage.dart';
 import 'cbc_select_content.dart';
 import 'fromCategory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -332,7 +331,7 @@ class _NomineesState extends State<Nominees> with TickerProviderStateMixin{
                                                                                   FirebaseFirestore.instance.collection('answered').add({
                                                                                     "question":snapshot.data?.docs[0].get("question")[0]["question"],
                                                                                     "answer":snapshot.data!.docs[0].get("question")[0]["answers"][index],
-                                                                                    "user":Get.find<LoginController>().userdets.value.first.userID,
+                                                                                    "user":GetStorage().read('userId'),
                                                                                     "accuracy":snapshot.data!.docs[0].get("question")[0]["answers"][index]["correct"],
                                                                                   }).then((value){
                                                                                     FirebaseFirestore.instance.collection('question').doc(snapshot.data!.docs[0].id).update({
@@ -457,7 +456,7 @@ class _NomineesState extends State<Nominees> with TickerProviderStateMixin{
                                       Container(
                                         padding: EdgeInsets.all(20),
                                         child: StreamBuilder(
-                                          stream: FirebaseFirestore.instance.collection('answered').where("user",isEqualTo: Get.find<LoginController>().userdets.value.first.userID).snapshots(),
+                                          stream: FirebaseFirestore.instance.collection('answered').where("user",isEqualTo: GetStorage().read('userId')).snapshots(),
                                           builder: (context,snapshot){
                                             if(snapshot.hasData){
                                               if(snapshot.data?.size!=0){

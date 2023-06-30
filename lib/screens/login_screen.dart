@@ -59,6 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // Username exists, retrieve the user's email address
         final userDoc = querySnapshot.docs.first;
         final userEmail = userDoc['email'];
+        final userFirstname = userDoc['firstname'];
+        final userLastname = userDoc['lastname'];
+        final userCountry = userDoc['country'];
 
         // Show a loading dialog
         showLoadingDialog("Signing In...");
@@ -75,7 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
         // Save user ID (UID) to SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_id', userId);
-        GetStorage().write('userId', phone);
+        GetStorage().write('userId', userId);
+        GetStorage().write('phone', phone);
+        GetStorage().write('email', userEmail);
+        GetStorage().write('country', userCountry);
 
         // Close the loading dialog
         Navigator.pop(context);

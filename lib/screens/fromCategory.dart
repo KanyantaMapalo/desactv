@@ -4,9 +4,7 @@ import 'dart:convert';
 import 'package:desactvapp3/services/db_ops.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-
-import '../controller/login.dart';
+import 'package:get_storage/get_storage.dart';
 
 
 class FromCategory extends StatefulWidget {
@@ -85,7 +83,7 @@ class _FromCategoryState extends State<FromCategory> {
                                             isLoading = true;
                                           });
 
-                                          var result =  jsonDecode(await dbops.vote_mac(Get.find<LoginController>().userdets.value.first.userID, snapshot.data[index].id));
+                                          var result =  jsonDecode(await dbops.vote_mac(GetStorage().read('userId'), snapshot.data[index].id));
 
                                           if(result["responseCode"]==1){
                                             Get.defaultDialog(

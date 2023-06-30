@@ -7,10 +7,9 @@ import 'package:desactvapp3/screens/subscription_plans_screen.dart';
 import 'package:desactvapp3/screens/watch_screen.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import '../controller/login.dart';
-import '../controller/user_subscription_controller.dart';
 import '../services/db_ops.dart';
 import 'about_us_screen.dart';
 import 'downloads_screen.dart';
@@ -62,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
 
-    Get.find<UserSubController>().getUserSub(Get.find<LoginController>().userdets.value.first.userID);
+    // Get.find<UserSubController>().getUserSub(Get.find<LoginController>().userdets.value.first.userID);
     return WillPopScope(
       onWillPop: () async{
         Get.snackbar("_", "Tap again to close application");
@@ -143,41 +142,34 @@ class _HomeScreenState extends State<HomeScreen> {
                             scale: 3,filterQuality: FilterQuality.medium
                           ),
                         ),
-                        child:GetX<LoginController>(
-                          init: LoginController(),
-                          builder: (controller){
-                           return Container(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Column(
-                                children: [
-                                  GestureDetector(
-                                    onTap:()=>Get.to(()=>ProfileScreen(),transition: Transition.leftToRightWithFade),
-                                    child: ListTile(
-                                      textColor: Colors.white,
-                                      leading: CircleAvatar(
-                                        backgroundImage: AssetImage("assets/de.png"),
-                                        radius: 35,
-                                      ),
-                                      title: GestureDetector(
-                                        onTap: (){
-                                          Get.to(()=>ProfileScreen(),transition: Transition.leftToRightWithFade);
-                                        },
-                                          child: Text("${controller.userdets.value.first.firstname} ${controller.userdets.value.first.lastname}", style: TextStyle(color: Colors.blue, fontSize: 16),maxLines: 1,overflow: TextOverflow.ellipsis,)),
-                                      subtitle: Text("${controller.userdets.value.first.email}",maxLines:1,overflow:TextOverflow.ellipsis,style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 11.5
-                                      ),),
-
-                                    ),
+                        child:Container(
+                          padding: EdgeInsets.only(top: 16),
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap:()=>Get.to(()=>ProfileScreen(),transition: Transition.leftToRightWithFade),
+                                child: ListTile(
+                                  textColor: Colors.white,
+                                  leading: CircleAvatar(
+                                    backgroundImage: AssetImage("assets/de.png"),
+                                    radius: 35,
                                   ),
-                                  int.parse(Get.find<UserSubController>().usersubdetails.value.first.watchdays)<=0?Text("Expired"):Text("You have "+Get.find<UserSubController>().usersubdetails.value.first.watchdays+" days left"),
-                                  Get.find<UserSubController>().usersubdetails.value.first.status=="inactive"?ElevatedButton(onPressed: (){Get.to(()=>SubscriptionScreen());},child:Text("Subscribe"),):Text("")
-                                ],
-                              ),
+                                  title: GestureDetector(
+                                      onTap: (){
+                                        Get.to(()=>ProfileScreen(),transition: Transition.leftToRightWithFade);
+                                      },
+                                      child: Text("${GetStorage().read('firstname')} ${GetStorage().read('lastname')}", style: TextStyle(color: Colors.blue, fontSize: 16),maxLines: 1,overflow: TextOverflow.ellipsis,)),
+                                  subtitle: Text("${GetStorage().read('email')}",maxLines:1,overflow:TextOverflow.ellipsis,style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 11.5
+                                  ),),
 
-                           );
-                           },
-                        ),
+                                ),
+                              ),
+                              ],
+                          ),
+
+                        )
                         )),
                     
                        Container(
@@ -273,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                     ),
                                   ),
-                                  Text("${Get.find<LoginController>().userdets.first.country}")
+                                  Text("${GetStorage().read('country')}")
                                 ],
                               ),
                             )
