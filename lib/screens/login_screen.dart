@@ -82,6 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
         GetStorage().write('phone', phone);
         GetStorage().write('email', userEmail);
         GetStorage().write('country', userCountry);
+        GetStorage().write('firstname', userFirstname);
+        GetStorage().write('lastname', userLastname);
 
         // Close the loading dialog
         Navigator.pop(context);
